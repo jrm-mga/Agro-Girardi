@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AGRO GIRARDI - Lista de Preços</title>
+
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
+  <style>
+    :root {
+      --bg: #eef7f1;
+      --surface: #ffffff;
+      --surface-soft: #f6fbf7;
+      --green-900: #064e3b;
+      --green-800: #065f46;
+      --green-700: #047857;
+      --green-600: #059669;
+      --green-100: #d1fae5;
+      --green-50: #ecfdf5;
+      --text: #12312a;
+      --muted: #5f756e;
+      --line: #d8eadf;
+      --shadow: 0 18px 45px rgba(6, 78, 59, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 28px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(16, 185, 129, 0.2), transparent 34%),
+        linear-gradient(135deg, #f8fffb 0%, var(--bg) 48%, #e2f4e8 100%);
+    }
+
+    body.login-active {
+      display: grid;
+      place-items: center;
+    }
+
+    body.login-active .page,
+    body.login-active .cart-modal {
+      display: none;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      color: var(--green-900);
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .page {
+      width: min(100%, 1480px);
+      margin: 0 auto;
+    }
+
+    .card {
+      width: 100%;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 24px;
+      border: 1px solid rgba(216, 234, 223, 0.9);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      border-top: 5px solid var(--green-600);
+    }
+
+    .info {
+      max-width: 850px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .file-input {
+      width: 100%;
+      max-width: 320px;
+      padding: 10px;
+      color: var(--green-900);
+      background: var(--green-50);
+      border: 1px dashed var(--green-600);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .login-screen {
+      width: min(420px, calc(100vw - 28px));
+      display: none;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(216, 234, 223, 0.9);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 26px;
+    }
+
+    body.login-active .login-screen {
+      display: block;
+    }
+
+    .login-screen h1 {
+      margin-bottom: 8px;
+      font-size: 26px;
+    }
+
+    .login-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .login-form label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .login-form input {
+      min-height: 44px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+      outline: none;
+    }
+
+    .login-form input:focus {
+      border-color: var(--green-600);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.14);
+    }
+
+    .login-error {
+      min-height: 18px;
+      color: #dc2626;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .file-input::file-selector-button {
+      margin-right: 12px;
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--green-700), var(--green-600));
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .config-title {
+      display: flex;
+      align-items: center;
+      min-height: 42px;
+      color: var(--green-900);
+      font-weight: 800;
+    }
+
+    .config-grid label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .config-grid input {
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 10px;
+      color: var(--text);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .execute-btn {
+      min-height: 42px;
+      align-self: end;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 18px;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--green-800), var(--green-600));
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(6, 95, 70, 0.18);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .execute-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(6, 95, 70, 0.22);
+    }
+
+    .order-card {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .order-card label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .order-card input {
+      min-height: 42px;
+      padding: 9px 10px;
+      color: var(--text);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+      outline: none;
+    }
+
+    .cart-summary {
+      color: var(--green-900);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .secondary-btn,
+    .danger-btn {
+      min-height: 38px;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .secondary-btn {
+      border: 1px solid var(--green-700);
+      color: #ffffff;
+      background: var(--green-700);
+      box-shadow: 0 8px 18px rgba(6, 95, 70, 0.14);
+    }
+
+    .danger-btn {
+      border: 1px solid #dc2626;
+      color: #dc2626;
+      background: #fff5f5;
+    }
+
+    .secondary-btn:hover,
+    .danger-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .select-cart-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--green-700);
+      cursor: pointer;
+    }
+
+    .cart-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(18, 49, 42, 0.54);
+    }
+
+    .cart-modal.active {
+      display: flex;
+    }
+
+    .cart-modal-content {
+      width: min(1180px, 100%);
+      max-height: min(86vh, 820px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 26px 70px rgba(6, 78, 59, 0.28);
+    }
+
+    .cart-modal-header,
+    .cart-modal-footer {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cart-modal-footer {
+      border-top: 1px solid var(--line);
+      border-bottom: 0;
+      justify-content: flex-end;
+    }
+
+    .quote-pdf-options {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+      flex-wrap: wrap;
+      margin-right: auto;
+    }
+
+    .quote-pdf-options label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .quote-pdf-options select {
+      min-height: 38px;
+      min-width: 190px;
+      padding: 8px 10px;
+      color: var(--text);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+      outline: none;
+    }
+
+    .cart-modal-title {
+      margin: 0;
+      color: var(--green-900);
+      font-size: 20px;
+    }
+
+    .cart-modal-body {
+      overflow: auto;
+      padding: 0;
+    }
+
+    .cart-table {
+      min-width: 1040px;
+      border-collapse: collapse !important;
+    }
+
+    .cart-table th,
+    .cart-table td {
+      padding: 10px;
+      border-bottom: 1px solid #edf6ef;
+      text-align: left;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    .cart-table th {
+      position: sticky;
+      top: 0;
+      color: #ffffff;
+      background: var(--green-800);
+      z-index: 1;
+    }
+
+    .empty-cart {
+      padding: 28px;
+      color: var(--muted);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .config-grid input:focus,
+    .standard-data-grid input:focus,
+    table.dataTable thead input:focus,
+    .dataTables_wrapper .dataTables_filter input:focus,
+    .dataTables_wrapper .dataTables_length select:focus {
+      border-color: var(--green-600);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.14);
+    }
+
+    .tabs {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .view-tabs {
+      margin-bottom: 18px;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--line);
+      padding: 11px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--green-900);
+      background: rgba(255, 255, 255, 0.82);
+      font-weight: 800;
+      box-shadow: 0 8px 22px rgba(6, 95, 70, 0.08);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
+    }
+
+    .tab-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(6, 95, 70, 0.14);
+    }
+
+    .tab-btn.active {
+      border-color: var(--green-700);
+      background: linear-gradient(135deg, var(--green-800), var(--green-600));
+      color: white;
+    }
+
+    .standard-data-card {
+      display: none;
+    }
+
+    .standard-data-card.active {
+      display: block;
+    }
+
+    .export-card {
+      display: none;
+    }
+
+    .export-card.active {
+      display: block;
+    }
+
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .export-grid label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .export-grid input,
+    .export-grid select {
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 10px;
+      color: var(--text);
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+      outline: none;
+    }
+
+    .standard-data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 220px));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .standard-data-grid label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .standard-data-grid input {
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 10px;
+      color: var(--text);
+      background: #fff7c2;
+      border: 1px solid #eab308;
+      border-radius: 8px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    #tabela_wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100% !important;
+      border-collapse: separate !important;
+      border-spacing: 0;
+    }
+
+    table.dataTable.no-footer {
+      border-bottom: 1px solid var(--line);
+    }
+
+    table.dataTable thead th {
+      color: #ffffff;
+      background: var(--green-800);
+      border-bottom: 0;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    table.dataTable thead tr:nth-child(2) th {
+      background: var(--green-50);
+      border-bottom: 1px solid var(--line);
+    }
+
+    table.dataTable thead select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px;
+      color: var(--text);
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: none;
+      font-size: 12px;
+    }
+
+    table.dataTable thead input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 9px;
+      color: var(--text);
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: none;
+    }
+
+    .multi-filter {
+      position: relative;
+      min-width: 150px;
+    }
+
+    .multi-filter-toggle {
+      width: 100%;
+      min-height: 32px;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      background: #ffffff;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .multi-filter.active .multi-filter-toggle {
+      border-color: var(--green-600);
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+    }
+
+    .multi-filter-menu {
+      position: static;
+      z-index: 20;
+      width: min(280px, 70vw);
+      display: none;
+      margin-top: 6px;
+      padding: 8px;
+      color: var(--text);
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 14px 36px rgba(6, 78, 59, 0.2);
+    }
+
+    .multi-filter.active .multi-filter-menu {
+      display: grid;
+      gap: 7px;
+    }
+
+    .multi-filter-search {
+      min-height: 32px;
+    }
+
+    .multi-filter-options {
+      max-height: 210px;
+      overflow: auto;
+      display: grid;
+      gap: 2px;
+    }
+
+    .multi-filter-option {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      padding: 5px 4px;
+      color: var(--text);
+      font-size: 12px;
+      white-space: normal;
+    }
+
+    .multi-filter-option input {
+      width: 14px;
+      min-width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+      margin: 0;
+      accent-color: var(--green-700);
+    }
+
+    .multi-filter-option span {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .editable-date,
+    .quote-date,
+    .editable-discount,
+    .quote-discount {
+      width: 112px;
+      padding: 7px 8px;
+      color: var(--text);
+      background: #fff7c2;
+      border: 1px solid #eab308;
+      border-radius: 6px;
+      font: inherit;
+      outline: none;
+    }
+
+    .editable-date:focus,
+    .quote-date:focus,
+    .editable-discount:focus,
+    .quote-discount:focus {
+      background: #fff3a3;
+      border-color: #ca8a04;
+      box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.2);
+    }
+
+    table.dataTable tbody td {
+      border-bottom: 1px solid #edf6ef;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    table.dataTable.stripe tbody tr.odd,
+    table.dataTable.display tbody tr.odd {
+      background-color: #fbfffc;
+    }
+
+    table.dataTable.display tbody tr:hover {
+      background-color: var(--green-50);
+    }
+
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 10px;
+      outline: none;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+      border: 1px solid var(--green-700);
+      border-radius: 8px;
+      color: #ffffff !important;
+      background: var(--green-700) !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+      border: 1px solid var(--green-600);
+      border-radius: 8px;
+      color: #ffffff !important;
+      background: var(--green-600) !important;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 12px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .hero-card {
+        grid-template-columns: 1fr;
+      }
+
+      .file-input {
+        max-width: 100%;
+      }
+
+      .tab-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .order-card {
+        grid-template-columns: 1fr;
+      }
+
+      .cart-summary {
+        white-space: normal;
+      }
+
+      .cart-modal-footer,
+      .quote-pdf-options {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .card {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body class="login-active">
+
+  <div class="login-screen" id="loginScreen">
+    <h1>Acesso ao Agro Girardi</h1>
+    <p class="info">Digite CPF e senha para acessar a lista de preços.</p>
+
+    <form class="login-form" id="loginForm">
+      <label>CPF <input type="text" id="loginCpf" inputmode="numeric" autocomplete="username" required /></label>
+      <label>Senha <input type="password" id="loginSenha" autocomplete="current-password" required /></label>
+      <div class="login-error" id="loginError" aria-live="polite"></div>
+      <button class="execute-btn" type="submit">Entrar</button>
+    </form>
+  </div>
+
+  <div class="page">
+    <div class="card hero-card">
+      <div>
+        <h1>AGRO GIRARDI - Lista de Preços</h1>
+        <p class="info">
+          Fertilizantes.
+        </p>
+      </div>
+
+      <a class="execute-btn import-link" href="https://script.google.com/macros/s/AKfycbw68-_afcT-H8tDqCOZCO6H67pZazptH0JhmajdguZzGSBOBayQ-aY-pdh8ba5a2v3F/exec" target="_blank" rel="noopener noreferrer">Importacao de Ficheiro</a>
+    </div>
+
+    <div class="tabs view-tabs" id="viewTabs">
+      <button class="tab-btn active" type="button" data-view="transformada">LISTA DE PREÇOS TRANSFORMADA</button>
+      <button class="tab-btn" type="button" data-view="exportacao">EXPORTACAO REGIAO</button>
+    </div>
+
+    <div class="card" id="configCard">
+      <div class="config-grid">
+        <strong class="config-title">LISTA DE PREÇOS TRANSFORMADA</strong>
+
+        <label>Dólar <input class="currency-input" type="text" id="transformDolar" inputmode="decimal" value="US$ 4,99" data-prefix="US$" /></label>
+        <label>ICMS (%) <input type="number" step="0.01" value="4" /></label>
+        <label>Frete <input class="currency-input" type="text" inputmode="decimal" value="R$ 295,00" data-prefix="R$" /></label>
+        <label>Correção (%) <input type="number" step="0.01" value="1.8" /></label>
+        <label>Antecipação (%) <input type="number" step="0.01" value="1.4" /></label>
+        <button class="execute-btn" type="button" id="executeTransform">Executar</button>
+      </div>
+    </div>
+
+    <div class="card export-card" id="exportCard">
+      <div class="export-grid">
+        <strong class="config-title">EXPORTACAO REGIAO</strong>
+        <label>Dólar <input class="currency-input" type="text" id="exportDolar" inputmode="decimal" value="US$ 4,99" data-prefix="US$" /></label>
+        <label>Data <input type="text" id="exportDataHoje" readonly /></label>
+        <label>Lista de Preços <select id="filterExportLista"><option value="">Todas</option></select></label>
+        <label>Centro de Faturamento <select id="filterExportCentro"><option value="">Todos</option></select></label>
+        <label>Embalagem <select id="filterExportEmbalagem"><option value="">Todas</option></select></label>
+        <button class="execute-btn" type="button" id="downloadExportExcel">Baixar Excel</button>
+      </div>
+    </div>
+
+    <div id="tabs" class="tabs"></div>
+
+    <div class="card order-card">
+      <label>Cliente <input type="text" id="clienteCotacao" value="Cliente TAL" /></label>
+      <span class="cart-summary" id="cartSummary">0 itens na cotação</span>
+      <button class="secondary-btn" type="button" id="openCart">Ver cotação</button>
+    </div>
+
+    <div class="card standard-data-card" id="dadosPadraoCard">
+      <div class="standard-data-grid">
+        <label>Desconto <input class="decimal-input" type="text" inputmode="decimal" value="50,00" /></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <table id="tabela" class="display" style="width:100%"></table>
+    </div>
+  </div>
+
+  <div class="cart-modal" id="cartModal" aria-hidden="true">
+    <div class="cart-modal-content" role="dialog" aria-modal="true" aria-labelledby="cartModalTitle">
+      <div class="cart-modal-header">
+        <h2 class="cart-modal-title" id="cartModalTitle">Cotação - Cliente TAL</h2>
+        <button class="secondary-btn" type="button" id="closeCart">Fechar</button>
+      </div>
+      <div class="cart-modal-body" id="cartModalBody"></div>
+      <div class="cart-modal-footer">
+        <div class="quote-pdf-options">
+          <label>Preço em reais
+            <select id="quotePriceColumn">
+              <option value="Preço em Reais FOB">Preço em Reais FOB</option>
+              <option value="Preço em Reais CIF">Preço em Reais CIF</option>
+            </select>
+          </label>
+          <button class="secondary-btn" type="button" id="downloadQuotePdf">Baixar PDF</button>
+        </div>
+        <button class="danger-btn" type="button" id="clearCart">Limpar cotação</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+  <script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRIEJGuI3yYLuWoeuAiUcnYSNZZ-GsDmqMXQ6NGuQXgvmblKPuXPTmoStsiiPRmDieeJh6YRcuSxX2j/pub?gid=2077995566&single=true&output=csv';
+    const LOGO_URL = 'https://raw.githubusercontent.com/Jose-Reis-Site/adriano/main/logo%20adriano.PNG';
+    const CIBRA_LOGO_URL = 'https://raw.githubusercontent.com/Jose-Reis-Site/adriano/e909aba04057a5ca9bbfa02773625720dd5e8c55/Cibranovo.png';
+    const DOLAR_COTACAO_URL = 'https://economia.awesomeapi.com.br/json/last/USD-BRL';
+    const LOGIN_CPF_TESTE = '01759818925';
+    const LOGIN_SENHA_TESTE = '191112';
+    const COLUNAS_COTACAO = [
+      'Lista de Preços',
+      'Centro de Faturamento',
+      'Nome do Produto',
+      'Embalagem',
+      'Vencimento',
+      'Preço em Dólar FOB',
+      'Preço em Reais FOB',
+      'Preço em Reais CIF'
+    ];
+    const COLUNAS_MODAL_COTACAO = [
+      'Lista de Preços',
+      'Centro de Faturamento',
+      'Nome do Produto',
+      'Embalagem',
+      'Vencimento',
+      'Desconto',
+      'Preço em Dólar FOB',
+      'Preço em Reais FOB',
+      'Preço em Reais CIF'
+    ];
+    const CAMPOS_CALCULO_COTACAO = [
+      'Cód. do Produto',
+      'Preço de Lista',
+      'Vencimento Financeiro',
+      'Desconto',
+      'Entrega de',
+      'Entrega até',
+      'Local de Expedição'
+    ];
+    const COLUNAS_EXPORTACAO = [
+      'Lista de Preços',
+      'Nome do Produto',
+      'Embalagem',
+      'Vencimento',
+      'Desconto',
+      'Preço em Dólar FOB',
+      'Preço em Reais FOB'
+    ];
+
+    let dadosOriginais = [];
+    let tabela = null;
+    let carrinho = [];
+    let telaAtual = 'transformada';
+
+    criarAbas([]);
+    preencherDataExportacao();
+
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const cpf = document.getElementById('loginCpf').value.replace(/\D/g, '');
+      const senha = document.getElementById('loginSenha').value;
+      const erro = document.getElementById('loginError');
+
+      if (cpf === LOGIN_CPF_TESTE && senha === LOGIN_SENHA_TESTE) {
+        erro.textContent = '';
+        document.body.classList.remove('login-active');
+        atualizarDolarTransformadoAutomatico();
+
+        if (!dadosOriginais.length) {
+          carregarCsvOnline();
+        }
+
+        return;
+      }
+
+      erro.textContent = 'CPF ou senha invalidos.';
+      document.getElementById('loginSenha').value = '';
+      document.getElementById('loginSenha').focus();
+    });
+
+    document.querySelectorAll('.currency-input').forEach(input => {
+      input.addEventListener('blur', () => {
+        const prefix = input.dataset.prefix;
+        const value = input.value
+          .replace(prefix, '')
+          .replace(/\s/g, '')
+          .replace(/\./g, '')
+          .replace(',', '.');
+        const numericValue = Number(value);
+
+        if (Number.isNaN(numericValue)) {
+          input.value = `${prefix} 0,00`;
+          return;
+        }
+
+        const decimalPlaces = input.id === 'transformDolar' ? 3 : 2;
+        input.value = `${prefix} ${numericValue.toFixed(decimalPlaces).replace('.', ',')}`;
+      });
+    });
+
+    document.querySelectorAll('.decimal-input').forEach(input => {
+      input.addEventListener('blur', () => {
+        input.value = formatarDecimalBrasileiro(input.value);
+        atualizarDescontoPadrao();
+      });
+      input.addEventListener('change', () => {
+        atualizarDescontoPadrao();
+      });
+    });
+
+    document.getElementById('executeTransform').addEventListener('click', recalcularTabelaAtual);
+    document.getElementById('openCart').addEventListener('click', abrirCarrinho);
+    document.getElementById('closeCart').addEventListener('click', fecharCarrinho);
+    document.getElementById('clearCart').addEventListener('click', limparCarrinho);
+    document.getElementById('downloadQuotePdf').addEventListener('click', gerarPdfCotacao);
+    document.getElementById('downloadExportExcel').addEventListener('click', gerarExcelExportacaoRegiao);
+    document.getElementById('clienteCotacao').addEventListener('input', atualizarTituloCarrinho);
+    document.querySelectorAll('#viewTabs .tab-btn').forEach(button => {
+      button.addEventListener('click', () => alternarTela(button.dataset.view));
+    });
+    document.getElementById('exportDolar').addEventListener('blur', renderExportacaoRegiao);
+    ['filterExportLista', 'filterExportCentro', 'filterExportEmbalagem'].forEach(id => {
+      document.getElementById(id).addEventListener('change', renderExportacaoRegiao);
+    });
+    document.getElementById('cartModal').addEventListener('click', event => {
+      if (event.target.id === 'cartModal') {
+        fecharCarrinho();
+      }
+    });
+
+    function carregarCsvOnline() {
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          dadosOriginais = prepararDatas(results.data);
+          atualizarDadosCarregados();
+        },
+        error: function(error) {
+          console.error('Erro ao carregar CSV online:', error);
+          alert('Nao foi possivel carregar o CSV online. Acesse a importacao pelo botao no topo da pagina.');
+        }
+      });
+    }
+
+    function atualizarDadosCarregados() {
+      atualizarFiltrosExportacao();
+
+      if (telaAtual === 'exportacao') {
+        renderExportacaoRegiao();
+        return;
+      }
+
+      criarAbas(dadosOriginais);
+    }
+
+    function alternarTela(view) {
+      telaAtual = view;
+
+      document.querySelectorAll('#viewTabs .tab-btn').forEach(button => {
+        button.classList.toggle('active', button.dataset.view === view);
+      });
+
+      const isExportacao = view === 'exportacao';
+      document.getElementById('configCard').style.display = isExportacao ? 'none' : 'block';
+      document.getElementById('exportCard').classList.toggle('active', isExportacao);
+      document.getElementById('tabs').style.display = isExportacao ? 'none' : 'flex';
+      document.querySelector('.order-card').style.display = isExportacao ? 'none' : 'grid';
+      document.getElementById('dadosPadraoCard').classList.remove('active');
+
+      if (isExportacao) {
+        // Garante que os selects do topo do card de exportação sejam preenchidos com os dados originais
+        atualizarFiltrosExportacao();
+        renderExportacaoRegiao();
+        return;
+      }
+
+      criarAbas(dadosOriginais);
+    }
+
+    function preencherDataExportacao() {
+      const hoje = new Date();
+      const dia = String(hoje.getDate()).padStart(2, '0');
+      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+      const ano = hoje.getFullYear();
+      document.getElementById('exportDataHoje').value = `${dia}/${mes}/${ano}`;
+    }
+
+    async function atualizarDolarTransformadoAutomatico() {
+      const input = document.getElementById('transformDolar');
+
+      if (!input) return;
+
+      try {
+        const response = await fetch(DOLAR_COTACAO_URL);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const cotacaoRaw = data && data.USDBRL ? (data.USDBRL.ask || data.USDBRL.bid) : '';
+        const cotacao = Number(String(cotacaoRaw).replace(',', '.'));
+
+        if (Number.isNaN(cotacao) || cotacao <= 0) {
+          throw new Error('Cotacao invalida');
+        }
+
+        input.value = `US$ ${cotacao.toFixed(3).replace('.', ',')}`;
+
+        if (telaAtual === 'transformada' && tabela) {
+          recalcularTabelaAtual();
+        }
+      } catch (error) {
+        console.warn('Nao foi possivel atualizar a cotacao do dolar automaticamente:', error);
+      }
+    }
+
+    function getDataHojeBrasileira() {
+      const hoje = new Date();
+      const dia = String(hoje.getDate()).padStart(2, '0');
+      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+      const ano = hoje.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    function serialDateToDate(serial) {
+      if (typeof serial !== 'number' || Number.isNaN(serial)) return null;
+      return new Date(Math.round((serial - 25569) * 86400 * 1000));
+    }
+
+    function getDataParaExcel(value) {
+      if (typeof value === 'number') {
+        return serialDateToDate(value);
+      }
+
+      return parseDataBrasileira(value);
+    }
+
+    function sanitizarNomeArquivo(value) {
+      return String(value || '')
+        .replace(/[\\/:*?"<>|]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function baixarArquivo(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function lerArquivoComoDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function carregarImagemComoDataUrl(url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Imagem nao encontrada');
+      }
+      const blob = await response.blob();
+      return lerArquivoComoDataUrl(blob);
+    }
+
+    function atualizarFiltrosExportacao() {
+      if (!dadosOriginais || dadosOriginais.length === 0) return;
+      
+      preencherSelectUnico('filterExportLista', dadosOriginais.map(row => row['Lista de Preços']));
+      preencherSelectUnico('filterExportCentro', dadosOriginais.map(row => row['Centro de Faturamento']));
+      preencherSelectUnico('filterExportEmbalagem', dadosOriginais.map(row => row['Embalagem']));
+    }
+
+    function preencherSelectUnico(id, values) {
+      const select = document.getElementById(id);
+      const valorAtual = select.value;
+      const primeiroTexto = select.options[0] ? select.options[0].textContent : 'Todos';
+      const valoresUnicos = Array.from(new Set(values.map(value => String(value || '').trim()).filter(Boolean)))
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+      select.innerHTML = `<option value="">${primeiroTexto}</option>`;
+      valoresUnicos.forEach(value => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+
+      if (valoresUnicos.includes(valorAtual)) {
+        select.value = valorAtual;
+      }
+    }
+
+    function prepararDatas(data) {
+      return data.map(row => {
+        const vencimentoFinanceiro = formatarDataCsvAmericana(row['Vencimento Financeiro']);
+        const descontoPadrao = getDescontoPadrao();
+        const preparedRow = {
+          ...row,
+          'Vencimento': vencimentoFinanceiro,
+          'Vencimento Financeiro': vencimentoFinanceiro,
+          'Entrega de': formatarDataCsvAmericana(row['Entrega de']),
+          'Entrega até': formatarDataCsvAmericana(row['Entrega até']),
+          'Desconto': descontoPadrao
+        };
+
+        return recalcularLinha(preparedRow);
+      });
+    }
+
+    function formatarDataCsvAmericana(value) {
+      if (!value) return '';
+
+      if (typeof value === 'number') {
+        return formatarDataBrasileira(value);
+      }
+
+      const text = String(value).trim();
+      const dateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
+
+      if (!dateMatch) {
+        return formatarDataBrasileira(value);
+      }
+
+      const month = dateMatch[1].padStart(2, '0');
+      const day = dateMatch[2].padStart(2, '0');
+      const year = dateMatch[3].length === 2 ? `20${dateMatch[3]}` : dateMatch[3];
+
+      return `${day}/${month}/${year}`;
+    }
+
+    function formatarDataBrasileira(value) {
+      if (!value) return '';
+
+      if (typeof value === 'number') {
+        const d = serialDateToDate(value);
+        if (d) return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+      }
+
+      const text = String(value).trim();
+
+      const compactDateMatch = text.match(/^(\d{2})(\d{2})(\d{4})$/);
+      if (compactDateMatch) {
+        return `${compactDateMatch[1]}/${compactDateMatch[2]}/${compactDateMatch[3]}`;
+      }
+      
+      const dateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
+      if (dateMatch) {
+        const firstPart = Number(dateMatch[1]);
+        const secondPart = Number(dateMatch[2]);
+        const isAmericanDate = firstPart <= 12 && secondPart > 12;
+        const dayValue = isAmericanDate ? dateMatch[2] : dateMatch[1];
+        const monthValue = isAmericanDate ? dateMatch[1] : dateMatch[2];
+        const day = dayValue.padStart(2, '0');
+        const month = monthValue.padStart(2, '0');
+        const year = dateMatch[3].length === 2 ? `20${dateMatch[3]}` : dateMatch[3];
+        return `${day}/${month}/${year}`;
+      }
+
+      const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (isoMatch) {
+        return `${isoMatch[3].padStart(2, '0')}/${isoMatch[2].padStart(2, '0')}/${isoMatch[1]}`;
+      }
+
+      const date = new Date(text);
+      if (!Number.isNaN(date.getTime())) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      }
+
+      return text;
+    }
+
+    function formatarDecimalBrasileiro(value) {
+      const numericValue = parseNumeroBrasileiro(value);
+
+      if (Number.isNaN(numericValue)) {
+        return '0,00';
+      }
+
+      return numericValue.toFixed(2).replace('.', ',');
+    }
+
+    function parseNumeroBrasileiro(value) {
+      if (value === null || value === undefined) return NaN;
+      if (typeof value === 'number') return value;
+
+      const cleanValue = String(value)
+        .replace(/[^\d,.-]/g, '')
+        .trim();
+
+      if (cleanValue.includes(',')) {
+        return Number(cleanValue.replace(/\./g, '').replace(',', '.'));
+      }
+
+      const dotParts = cleanValue.split('.');
+      if (dotParts.length === 2 && dotParts[1].length <= 2) {
+        return Number(cleanValue);
+      }
+
+      return Number(cleanValue.replace(/\./g, ''));
+    }
+
+    function getDescontoPadrao() {
+      const descontoInput = document.querySelector('#dadosPadraoCard .decimal-input');
+      return formatarDecimalBrasileiro(descontoInput ? descontoInput.value : '50,00');
+    }
+
+    function atualizarDescontoPadrao() {
+      const descontoInput = document.querySelector('#dadosPadraoCard .decimal-input');
+      const descontoPadrao = getDescontoPadrao();
+
+      if (descontoInput) {
+        descontoInput.value = descontoPadrao;
+      }
+
+      if (!dadosOriginais.length) return;
+
+      dadosOriginais = dadosOriginais.map(row => recalcularLinha({
+        ...row,
+        'Desconto': descontoPadrao
+      }));
+
+      carrinho = carrinho.map(item => recalcularLinha({
+        ...item,
+        'Desconto': descontoPadrao
+      }));
+
+      if (telaAtual === 'transformada') {
+        criarAbas(dadosOriginais);
+      }
+
+      atualizarResumoCarrinho();
+
+      if (document.getElementById('cartModal').classList.contains('active')) {
+        renderCarrinho();
+      }
+    }
+
+    function getPercentualConfig(labelText) {
+      const label = Array.from(document.querySelectorAll('#configCard label'))
+        .find(item => item.textContent.includes(labelText));
+      const value = label ? parseNumeroBrasileiro(label.querySelector('input').value) : 0;
+
+      if (Number.isNaN(value)) {
+        return 0;
+      }
+
+      return value / 100;
+    }
+
+    function getValorConfig(labelText) {
+      const label = Array.from(document.querySelectorAll('#configCard label'))
+        .find(item => item.textContent.includes(labelText));
+      const value = label ? parseNumeroBrasileiro(label.querySelector('input').value) : 0;
+
+      if (Number.isNaN(value)) {
+        return 0;
+      }
+
+      return value;
+    }
+
+    function parseDataBrasileira(value) {
+      const formattedValue = formatarDataBrasileira(value);
+      const match = formattedValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+      if (!match) return null;
+
+      return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+    }
+
+    function diferencaDias(dataFinal, dataInicial) {
+      const millisecondsPerDay = 24 * 60 * 60 * 1000;
+      return Math.round((dataFinal - dataInicial) / millisecondsPerDay);
+    }
+
+    function calcularPrecoDolarFob(row) {
+      const vencimento = parseDataBrasileira(row['Vencimento']);
+      const vencimentoFinanceiro = parseDataBrasileira(row['Vencimento Financeiro']);
+      const precoLista = parseNumeroBrasileiro(row['Preço de Lista']);
+      const desconto = parseNumeroBrasileiro(row['Desconto']);
+      const icms = getPercentualConfig('ICMS');
+      const correcao = getPercentualConfig('Correção');
+      const antecipacao = getPercentualConfig('Antecipação');
+
+      if (!vencimento || !vencimentoFinanceiro || Number.isNaN(precoLista) || Number.isNaN(desconto)) {
+        return '';
+      }
+
+      const precoBase = (precoLista - desconto) * (1 + icms);
+      const dias = diferencaDias(vencimento, vencimentoFinanceiro);
+      let precoDolarFob = precoBase;
+
+      if (dias > 0) {
+        precoDolarFob = precoBase * (1 + ((correcao / 30) * dias));
+      } else if (dias < 0) {
+        precoDolarFob = precoBase * (1 - ((antecipacao / 30) * Math.abs(dias)));
+      }
+
+      return formatarDecimalBrasileiro(precoDolarFob);
+    }
+
+    function recalcularLinha(row) {
+      const precoDolarFob = calcularPrecoDolarFob(row);
+      const precoDolarFobNumero = parseNumeroBrasileiro(precoDolarFob);
+      const dolar = getValorConfig('Dólar');
+      const frete = getValorConfig('Frete');
+      const precoReaisFob = Number.isNaN(precoDolarFobNumero)
+        ? NaN
+        : precoDolarFobNumero * dolar;
+
+      row['Preço em Dólar FOB'] = precoDolarFob;
+      row['Preço em Reais FOB'] = Number.isNaN(precoReaisFob)
+        ? ''
+        : formatarDecimalBrasileiro(precoReaisFob);
+      row['Preço em Reais CIF'] = Number.isNaN(precoReaisFob)
+        ? ''
+        : formatarDecimalBrasileiro(precoReaisFob + frete);
+
+      return row;
+    }
+
+    function recalcularTabelaAtual() {
+      if (!tabela) return;
+
+      tabela.rows().every(function() {
+        const row = this.data();
+        const rowRecalculada = recalcularLinha(row);
+        this.data(rowRecalculada);
+        atualizarItemCarrinho(rowRecalculada);
+      });
+
+      tabela.draw(false);
+    }
+
+    function montarItemCotacao(row) {
+      const colunasItem = [...new Set([...COLUNAS_MODAL_COTACAO, ...CAMPOS_CALCULO_COTACAO])];
+      const item = colunasItem.reduce((cotacao, coluna) => {
+        cotacao[coluna] = row[coluna] !== undefined ? row[coluna] : '';
+        return cotacao;
+      }, {});
+
+      item['Vencimento'] = formatarDataBrasileira(item['Vencimento']);
+      item['Vencimento Financeiro'] = formatarDataBrasileira(item['Vencimento Financeiro']);
+      item.__cartKey = gerarChaveProduto(row);
+      return item;
+    }
+
+    function gerarChaveProduto(row) {
+      return [
+        row['Lista de Preços'] || '',
+        row['Cód. do Produto'] || '',
+        row['Nome do Produto'] || '',
+        row['Embalagem'] || '',
+        row['Preço de Lista'] || ''
+      ].join('|');
+    }
+
+    function itemEstaNoCarrinho(row) {
+      const chave = gerarChaveProduto(row);
+      return carrinho.some(item => item.__cartKey === chave);
+    }
+
+    function adicionarAoCarrinho(row) {
+      if (!itemEstaNoCarrinho(row)) {
+        carrinho.push(montarItemCotacao(row));
+      }
+      atualizarResumoCarrinho();
+    }
+
+    function removerDoCarrinhoPorLinha(row) {
+      const chave = gerarChaveProduto(row);
+      carrinho = carrinho.filter(item => item.__cartKey !== chave);
+      atualizarResumoCarrinho();
+    }
+
+    function atualizarItemCarrinho(row) {
+      const chave = gerarChaveProduto(row);
+      const index = carrinho.findIndex(item => item.__cartKey === chave);
+
+      if (index >= 0) {
+        const descontoCotacao = carrinho[index]['Desconto'];
+        const itemAtualizado = montarItemCotacao(row);
+
+        if (descontoCotacao !== undefined) {
+          itemAtualizado['Desconto'] = descontoCotacao;
+        }
+
+        carrinho[index] = recalcularLinha(itemAtualizado);
+      }
+    }
+
+    function atualizarDescontoItemCotacao(index, value) {
+      const item = carrinho[index];
+
+      if (!item) return;
+
+      item['Desconto'] = formatarDecimalBrasileiro(value);
+      carrinho[index] = recalcularLinha(item);
+      renderCarrinho();
+    }
+
+    function atualizarVencimentoItemCotacao(index, value) {
+      const item = carrinho[index];
+
+      if (!item) return;
+
+      item['Vencimento'] = formatarDataBrasileira(value);
+      carrinho[index] = recalcularLinha(item);
+      renderCarrinho();
+    }
+
+    function removerDoCarrinho(index) {
+      carrinho.splice(index, 1);
+      atualizarResumoCarrinho();
+      renderCarrinho();
+
+      if (tabela) {
+        tabela.draw(false);
+      }
+    }
+
+    function limparCarrinho() {
+      carrinho = [];
+      atualizarResumoCarrinho();
+      renderCarrinho();
+
+      if (tabela) {
+        tabela.draw(false);
+      }
+    }
+
+    function atualizarResumoCarrinho() {
+      const total = carrinho.length;
+      document.getElementById('cartSummary').textContent = `${total} ${total === 1 ? 'item' : 'itens'} na cotação`;
+    }
+
+    function atualizarTituloCarrinho() {
+      const cliente = document.getElementById('clienteCotacao').value.trim() || 'Cliente TAL';
+      document.getElementById('cartModalTitle').textContent = `Cotação - ${cliente}`;
+    }
+
+    function abrirCarrinho() {
+      atualizarTituloCarrinho();
+      renderCarrinho();
+      const modal = document.getElementById('cartModal');
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function fecharCarrinho() {
+      const modal = document.getElementById('cartModal');
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function renderCarrinho() {
+      const body = document.getElementById('cartModalBody');
+
+      if (!carrinho.length) {
+        body.innerHTML = '<div class="empty-cart">Nenhum produto adicionado à cotação.</div>';
+        return;
+      }
+
+      const header = COLUNAS_MODAL_COTACAO.map(coluna => `<th>${escapeHtml(coluna)}</th>`).join('');
+      const rows = carrinho.map((item, index) => `
+        <tr>
+          ${COLUNAS_MODAL_COTACAO.map(coluna => {
+            if (coluna === 'Vencimento') {
+              return `<td><input class="quote-date" type="text" inputmode="numeric" placeholder="dd/mm/aaaa" value="${escapeHtml(formatarDataBrasileira(item[coluna]))}" data-index="${index}" /></td>`;
+            }
+
+            if (coluna === 'Desconto') {
+              return `<td><input class="quote-discount" type="text" inputmode="decimal" value="${escapeHtml(item[coluna] || '')}" data-index="${index}" /></td>`;
+            }
+
+            return `<td>${escapeHtml(item[coluna] || '')}</td>`;
+          }).join('')}
+          <td><button class="danger-btn remove-cart-item" type="button" data-index="${index}">Remover</button></td>
+        </tr>
+      `).join('');
+
+      body.innerHTML = `
+        <table class="cart-table">
+          <thead>
+            <tr>${header}<th>Ação</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+
+      body.querySelectorAll('.remove-cart-item').forEach(button => {
+        button.addEventListener('click', () => removerDoCarrinho(Number(button.dataset.index)));
+      });
+
+      body.querySelectorAll('.quote-date').forEach(input => {
+        input.addEventListener('change', () => atualizarVencimentoItemCotacao(Number(input.dataset.index), input.value));
+        input.addEventListener('blur', () => {
+          input.value = formatarDataBrasileira(input.value);
+        });
+      });
+
+      body.querySelectorAll('.quote-discount').forEach(input => {
+        input.addEventListener('change', () => atualizarDescontoItemCotacao(Number(input.dataset.index), input.value));
+        input.addEventListener('blur', () => {
+          input.value = formatarDecimalBrasileiro(input.value);
+        });
+      });
+    }
+
+    async function gerarPdfCotacao() {
+      if (!carrinho.length) {
+        alert('Selecione ao menos um produto para gerar a cotação.');
+        return;
+      }
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('Nao foi possivel carregar a biblioteca de PDF. Verifique sua conexao e tente novamente.');
+        return;
+      }
+
+      const colunaPrecoReais = document.getElementById('quotePriceColumn').value;
+      const cliente = document.getElementById('clienteCotacao').value.trim() || 'Cliente TAL';
+      const dolarCotacao = getValorConfig('Dólar');
+      const dolarCotacaoTexto = `US$ ${dolarCotacao.toFixed(3).replace('.', ',')}`;
+      let logoDataUrl = '';
+      let cibraLogoDataUrl = '';
+      try {
+        logoDataUrl = await carregarImagemComoDataUrl(LOGO_URL);
+      } catch (error) {
+        console.warn('Logo da cotacao nao encontrada:', error);
+      }
+      try {
+        cibraLogoDataUrl = await carregarImagemComoDataUrl(CIBRA_LOGO_URL);
+      } catch (error) {
+        console.warn('Logo da Cibra nao encontrada:', error);
+      }
+      const hoje = new Date();
+      const dataCotacao = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const verde = [6, 95, 70];
+      const verdeClaro = [236, 253, 245];
+      const colunasPdf = [
+        'Lista de Preços',
+        'Centro de Faturamento',
+        'Nome do Produto',
+        'Embalagem',
+        'Vencimento',
+        'Preço em Dólar FOB',
+        colunaPrecoReais
+      ];
+      const linhasPdf = carrinho.map(item => colunasPdf.map(coluna => {
+        if (coluna === 'Vencimento') {
+          return formatarDataBrasileira(item[coluna]);
+        }
+
+        return item[coluna] || '';
+      }));
+
+      doc.setFillColor(...verde);
+      doc.rect(0, 0, pageWidth, 25, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.text('Agro Girardi', 36, 11);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Cotação Comercial', 36, 18);
+
+      if (logoDataUrl) {
+        const logoFormat = logoDataUrl.includes('image/jpeg') || logoDataUrl.includes('image/jpg') ? 'JPEG' : 'PNG';
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(12, 4, 18, 18, 1, 1, 'F');
+        doc.addImage(logoDataUrl, logoFormat, 13, 5, 16, 16);
+      }
+
+      if (cibraLogoDataUrl) {
+        const cibraLogoFormat = cibraLogoDataUrl.includes('image/jpeg') || cibraLogoDataUrl.includes('image/jpg') ? 'JPEG' : 'PNG';
+        doc.addImage(cibraLogoDataUrl, cibraLogoFormat, pageWidth - 54, 4.5, 42, 16);
+      }
+      doc.setTextColor(18, 49, 42);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Cliente: ${cliente}`, 12, 36);
+      doc.text('Vendedor: Adriano Girardi', 12, 43);
+      doc.text(`Data: ${dataCotacao}`, 12, 50);
+      doc.text(`Dólar praticado: ${dolarCotacaoTexto}`, 12, 57);
+      doc.text(`Frete: ${colunaPrecoReais}`, 12, 64);
+
+      doc.autoTable({
+        head: [colunasPdf],
+        body: linhasPdf,
+        startY: 73,
+        theme: 'grid',
+        styles: {
+          font: 'helvetica',
+          fontSize: 6,
+          cellPadding: 1.2,
+          textColor: [18, 49, 42],
+          lineColor: [216, 234, 223],
+          lineWidth: 0.2
+        },
+        headStyles: {
+          fillColor: verde,
+          textColor: [255, 255, 255],
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: verdeClaro
+        },
+        columnStyles: {
+          0: { cellWidth: 22 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 46 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 18 },
+          5: { cellWidth: 24 },
+          6: { cellWidth: 26 }
+        },
+        margin: { left: 10, right: 10 }
+      });
+
+      const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 190;
+      const footerY = Math.min(finalY, 191);
+      doc.setFontSize(9);
+      doc.setTextColor(95, 117, 110);
+      doc.text('Cota\u00e7\u00e3o gerada automaticamente pelo sistema Agro Girardi.', 12, footerY);
+      doc.setTextColor(220, 38, 38);
+      doc.text('Cota\u00e7\u00e3o v\u00e1lida para o momento, sujeita a confirma\u00e7\u00e3o.', 12, footerY + 5);
+      doc.save('Agro Girardi - Cotacao.pdf');
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function criarFiltroMultiplo(coluna, valores, index) {
+      const options = valores.map(value => `
+        <label class="multi-filter-option" data-filter-option>
+          <input type="checkbox" class="multi-filter-value" value="${escapeHtml(value)}" />
+          <span>${escapeHtml(value)}</span>
+        </label>
+      `).join('');
+
+      return `
+        <div class="multi-filter" data-column="${index}">
+          <button class="multi-filter-toggle" type="button">Todos</button>
+          <div class="multi-filter-menu">
+            <input class="multi-filter-search" type="search" placeholder="Buscar ${escapeHtml(coluna)}" />
+            <div style="display: flex; gap: 10px; padding: 4px; font-size: 11px; border-bottom: 1px solid var(--line); margin-bottom: 4px;">
+              <a href="#" class="multi-filter-select-all" style="color: var(--green-700); font-weight: bold; text-decoration: none;">Marcar todos</a>
+              <a href="#" class="multi-filter-clear-all" style="color: #dc2626; font-weight: bold; text-decoration: none;">Limpar todos</a>
+            </div>
+            <div class="multi-filter-options">${options}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function inicializarFiltrosMultiplo(thead) {
+      $(document).off('click.multiFilterToggle').on('click.multiFilterToggle', '.multi-filter-toggle', function(event) {
+        event.stopPropagation();
+        const filter = $(this).closest('.multi-filter');
+        $('.multi-filter').not(filter).removeClass('active');
+        filter.toggleClass('active');
+        filter.find('.multi-filter-search').trigger('focus');
+      });
+
+      $(document).off('click.multiFilterMenu').on('click.multiFilterMenu', '.multi-filter-menu', event => {
+        event.stopPropagation();
+      });
+
+      $(document).off('input.multiFilterSearch').on('input.multiFilterSearch', '.multi-filter-search', function() {
+        const term = this.value.trim().toLocaleLowerCase('pt-BR');
+        $(this).closest('.multi-filter').find('[data-filter-option]').each(function() {
+          const text = $(this).text().trim().toLocaleLowerCase('pt-BR');
+          $(this).toggle(!term || text.includes(term));
+        });
+      });
+
+      // AÇÃO: Marcar Todos os itens que estão visíveis
+      $(document).off('click.multiFilterSelectAll').on('click.multiFilterSelectAll', '.multi-filter-select-all', function(event) {
+        event.preventDefault();
+        const filter = $(this).closest('.multi-filter');
+        // Filtra apenas as opções que não estão ocultas pela busca do usuário
+        filter.find('[data-filter-option]:visible .multi-filter-value').prop('checked', true);
+        aplicarFiltroMultiplo(filter);
+      });
+
+      // AÇÃO: Limpar Todos (Desmarcar tudo)
+      $(document).off('click.multiFilterClearAll').on('click.multiFilterClearAll', '.multi-filter-clear-all', function(event) {
+        event.preventDefault();
+        const filter = $(this).closest('.multi-filter');
+        filter.find('.multi-filter-value').prop('checked', false);
+        aplicarFiltroMultiplo(filter);
+      });
+
+      // AÇÃO: Clique individual nas opções
+      $(document).off('change.multiFilterValue').on('change.multiFilterValue', '.multi-filter-value', function() {
+        const filter = $(this).closest('.multi-filter');
+        aplicarFiltroMultiplo(filter);
+      });
+
+      $(document).off('click.multiFilter').on('click.multiFilter', () => {
+        $('.multi-filter').removeClass('active');
+      });
+    }
+
+    function aplicarFiltroMultiplo(filter) {
+      const columnIndex = Number(filter.data('column'));
+      const selected = filter.find('.multi-filter-value:checked').map(function() {
+        return this.value;
+      }).get();
+      const button = filter.find('.multi-filter-toggle');
+
+      if (!selected.length) {
+        tabela.column(columnIndex).search('', true, false).draw();
+        button.text('Todos');
+        return;
+      }
+
+      const regex = selected.map(value => $.fn.dataTable.util.escapeRegex(value)).join('|');
+      tabela.column(columnIndex).search(`^(${regex})$`, true, false).draw();
+      button.text(selected.length === 1 ? selected[0] : `${selected.length} selecionados`);
+    }
+
+    function criarAbas(data) {
+      const tabs = document.getElementById('tabs');
+      tabs.innerHTML = '';
+
+      const dadosPadraoBtn = document.createElement('button');
+      dadosPadraoBtn.className = 'tab-btn active';
+      dadosPadraoBtn.textContent = 'Dados Padrao';
+      dadosPadraoBtn.onclick = () => {
+        document.querySelectorAll('#tabs .tab-btn').forEach(b => b.classList.remove('active'));
+        dadosPadraoBtn.classList.add('active');
+        renderDadosPadrao();
+      };
+
+      tabs.appendChild(dadosPadraoBtn);
+      renderDadosPadrao();
+
+      // DEFINIÇÃO DOS GRUPOS SOLICITADOS
+      const grupos = {
+        'BRL Q1 PNG': data.filter(row => (row['Lista de Preços'] || '').includes('BRL_Q1_2026') && (row['Centro de Faturamento'] || '').includes('PNG')),
+        'BRL Q2 PNG': data.filter(row => (row['Lista de Preços'] || '').includes('BRL_Q2_2026') && (row['Centro de Faturamento'] || '').includes('PNG')),
+        'BRL Q3 PNG': data.filter(row => (row['Lista de Preços'] || '').includes('BRL_Q3_2026') && (row['Centro de Faturamento'] || '').includes('PNG')),
+        'BRL Q4 PNG': data.filter(row => (row['Lista de Preços'] || '').includes('BRL_Q4_2026') && (row['Centro de Faturamento'] || '').includes('PNG')),
+        'BRL Q1 UBA': data.filter(row => (row['Lista de Preços'] || '').includes('BRL_Q1_2026') && (row['Centro de Faturamento'] || '').includes('UBA')),
+        'BRL Q2 UBA': data.filter(row => (row['Lista de Preços'] || '').includes('BRL_Q2_2026') && (row['Centro de Faturamento'] || '').includes('UBA')),
+        'BRL Q3 UBA': data.filter(row => (row['Lista de Preços'] || '').includes('BRL_Q3_2026') && (row['Centro de Faturamento'] || '').includes('UBA')),
+        'BRL Q4 UBA': data.filter(row => (row['Lista de Preços'] || '').includes('BRL_Q4_2026') && (row['Centro de Faturamento'] || '').includes('UBA')),
+        
+        // Aba Outros: Inclui tudo que não foi filtrado acima
+        'Outros': data.filter(row => {
+          const lista = row['Lista de Preços'] || '';
+          const centro = row['Centro de Faturamento'] || '';
+          
+          const isQ1toQ4 = lista.includes('BRL_Q1_2026') || lista.includes('BRL_Q2_2026') || lista.includes('BRL_Q3_2026') || lista.includes('BRL_Q4_2026');
+          const isPngOrUba = centro.includes('PNG') || centro.includes('UBA');
+          
+          return !(isQ1toQ4 && isPngOrUba);
+        })
+      };
+
+      Object.keys(grupos).forEach((nomeAba) => {
+        if (!grupos[nomeAba].length) return;
+
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn';
+        btn.textContent = `${nomeAba} (${grupos[nomeAba].length})`;
+
+        btn.onclick = () => {
+          document.querySelectorAll('#tabs .tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderTabela(grupos[nomeAba]);
+        };
+
+        tabs.appendChild(btn);
+      });
+    }
+
+    function renderDadosPadrao() {
+      document.getElementById('dadosPadraoCard').classList.add('active');
+      document.getElementById('tabela').closest('.card').style.display = 'none';
+
+      if (tabela) {
+        tabela.destroy();
+        tabela = null;
+        $('#tabela').empty();
+      }
+    }
+
+    function destruirTabelaAtual() {
+      if (tabela) {
+        tabela.destroy();
+        tabela = null;
+        $('#tabela').empty();
+      }
+    }
+
+    function getDolarExportacao() {
+      const value = parseNumeroBrasileiro(document.getElementById('exportDolar').value);
+      return Number.isNaN(value) ? 0 : value;
+    }
+
+    function montarLinhaExportacao(row) {
+      const precoDolarFobNumero = parseNumeroBrasileiro(row['Preço em Dólar FOB']);
+      const precoReaisFob = Number.isNaN(precoDolarFobNumero)
+        ? ''
+        : formatarDecimalBrasileiro(precoDolarFobNumero * getDolarExportacao());
+
+      return {
+        ...row,
+        'Vencimento': formatarDataBrasileira(row['Vencimento']),
+        'Preço em Reais FOB': precoReaisFob
+      };
+    }
+
+    function filtrarDadosExportacao() {
+      const lista = document.getElementById('filterExportLista').value;
+      const centro = document.getElementById('filterExportCentro').value;
+      const embalagem = document.getElementById('filterExportEmbalagem').value;
+
+      return dadosOriginais.filter(row => {
+        const listaOk = !lista || row['Lista de Preços'] === lista;
+        const centroOk = !centro || row['Centro de Faturamento'] === centro;
+        const embalagemOk = !embalagem || row['Embalagem'] === embalagem;
+        return listaOk && centroOk && embalagemOk;
+      }).map(montarLinhaExportacao);
+    }
+
+    function atualizarLinhaDadosOriginais(row) {
+      const chave = gerarChaveProduto(row);
+      const index = dadosOriginais.findIndex(item => gerarChaveProduto(item) === chave);
+
+      if (index >= 0) {
+        dadosOriginais[index] = {
+          ...dadosOriginais[index],
+          ...row
+        };
+      }
+    }
+
+    async function gerarExcelExportacaoRegiao() {
+  if (!window.ExcelJS) {
+    alert('Nao foi possivel carregar a biblioteca de Excel. Verifique sua conexao e tente novamente.');
+    return;
+  }
+
+  // ALTERAÇÃO AQUI: Em vez de filtrar do array bruto, pegamos os dados filtrados diretamente do DataTable
+  if (!tabela) {
+    alert('A tabela não está inicializada.');
+    return;
+  }
+  
+  // Obtém apenas as linhas que passaram pelo filtro atual da planilha
+  const data = tabela.rows({ filter: 'applied' }).data().toArray()
+    .sort((a, b) => String(a['Nome do Produto'] || '').localeCompare(String(b['Nome do Produto'] || ''), 'pt-BR'));
+
+  if (!data.length) {
+    alert('Nao ha dados para exportar com os filtros selecionados.');
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Agro Girardi';
+  workbook.created = new Date();
+  const worksheet = workbook.addWorksheet('Lista de Preços', {
+    pageSetup: {
+      paperSize: 9,
+      orientation: 'landscape',
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      margins: {
+        left: 0.51, right: 0.51, top: 0.79, bottom: 0.79,
+        header: 0.31, footer: 0.31
+      }
+    }
+  });
+
+  const dolar = getDolarExportacao();
+  const lista = document.getElementById('filterExportLista').value || 'Todas';
+  const centro = document.getElementById('filterExportCentro').value || 'Todos';
+  const entregaPrimeira = data.map(row => formatarDataBrasileira(row['Entrega de'])).find(Boolean) || '';
+  const greenFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006B3F' } };
+  const darkGreenFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF064E3B' } };
+  const lightGreenFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAF7EF' } };
+  const yellowFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
+  const whiteFont = { color: { argb: 'FFFFFFFF' }, bold: true };
+  const greenFont = { color: { argb: 'FF064E3B' }, bold: true };
+  const thinBorder = {
+    top: { style: 'thin', color: { argb: 'FFD8EADF' } },
+    left: { style: 'thin', color: { argb: 'FFD8EADF' } },
+    bottom: { style: 'thin', color: { argb: 'FFD8EADF' } },
+    right: { style: 'thin', color: { argb: 'FFD8EADF' } }
+  };
+
+  worksheet.columns = [
+    { key: 'lista', width: 18 },
+    { key: 'produto', width: 34 },
+    { key: 'embalagem', width: 18 },
+    { key: 'vencimento', width: 16 },
+    { key: 'precoUsd', width: 18 },
+    { key: 'precoReais', width: 18 }
+  ];
+
+  ['A1:F1', 'A2:F2', 'A3:F3', 'A4:C4', 'A5:C5', 'A6:C6', 'A7:F7'].forEach(range => worksheet.mergeCells(range));
+
+  worksheet.getCell('A1').value = 'CIBRA FERTILIZANTES';
+  worksheet.getCell('A2').value = 'Nossa Gente Faz por Você';
+  worksheet.getCell('A3').value = 'Cota\u00e7\u00e3o v\u00e1lida para o momento, sujeita a confirma\u00e7\u00e3o';
+  worksheet.getCell('A4').value = 'Lista de Preços';
+  worksheet.getCell('D4').value = '✏️ Dólar (R$):';
+  worksheet.getCell('E4').value = dolar;
+  worksheet.getCell('A5').value = `Lista de Preço: ${lista} - Centro de Faturamento: ${centro}`;
+  worksheet.getCell('D5').value = '📅 Data da Lista:';
+  worksheet.getCell('E5').value = getDataHojeBrasileira();
+  worksheet.getCell('A6').value = entregaPrimeira ? `Entrega a partir de: ${entregaPrimeira}` : 'Entrega a partir de:';
+  worksheet.getCell('A7').value = '👆 Altere o dólar (célula amarela) para atualizar automaticamente os preços em Reais';
+
+  worksheet.getRow(1).height = 21;
+  worksheet.getRow(2).height = 16;
+  worksheet.getRow(4).height = 16;
+
+  ['A1', 'A2'].forEach(cellRef => {
+    const cell = worksheet.getCell(cellRef);
+    cell.fill = darkGreenFill;
+    cell.font = { ...whiteFont, size: cellRef === 'A1' ? 15 : 11 };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  });
+
+  worksheet.getCell('A3').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE699' } };
+  worksheet.getCell('A3').font = { color: { argb: 'FF7A4A00' }, bold: true };
+  worksheet.getCell('A3').alignment = { horizontal: 'center' };
+
+  ['A4', 'A5', 'A6'].forEach(cellRef => {
+    const cell = worksheet.getCell(cellRef);
+    cell.fill = lightGreenFill;
+    cell.font = greenFont;
+  });
+
+  ['D4', 'D5', 'D6', 'F4', 'F5', 'F6'].forEach(cellRef => {
+    const cell = worksheet.getCell(cellRef);
+    cell.fill = greenFill;
+    cell.font = whiteFont;
+    cell.alignment = { horizontal: 'center' };
+  });
+
+  worksheet.getCell('E4').fill = yellowFill;
+  worksheet.getCell('E4').numFmt = 'R$ #,##0.00';
+  worksheet.getCell('E4').font = greenFont;
+  worksheet.getCell('E4').alignment = { horizontal: 'center' };
+  worksheet.getCell('E4').protection = { locked: false };
+  worksheet.getCell('E5').fill = greenFill;
+  worksheet.getCell('E5').font = whiteFont;
+  worksheet.getCell('E5').alignment = { horizontal: 'center' };
+  worksheet.getCell('E6').fill = greenFill;
+  worksheet.getCell('E6').font = whiteFont;
+  worksheet.getCell('E6').alignment = { horizontal: 'center' };
+
+  worksheet.getCell('A7').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE4D6' } };
+  worksheet.getCell('A7').font = { color: { argb: 'FF9C5700' }, bold: true };
+  worksheet.getCell('A7').alignment = { horizontal: 'center' };
+
+  const headers = ['Lista de Preços', 'Nome do Produto', 'Embalagem', 'Vencimento', 'Preço USD FOB', 'Preço R$ FOB'];
+  worksheet.getRow(8).values = headers;
+  worksheet.getRow(8).height = 18;
+  worksheet.getRow(8).eachCell(cell => {
+    cell.fill = greenFill;
+    cell.font = whiteFont;
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = thinBorder;
+  });
+
+  data.forEach((row, index) => {
+    const rowNumber = index + 9;
+    const excelRow = worksheet.getRow(rowNumber);
+    const precoUsd = parseNumeroBrasileiro(row['Preço em Dólar FOB']);
+    excelRow.getCell(1).value = row['Lista de Preços'] || '';
+    excelRow.getCell(2).value = row['Nome do Produto'] || '';
+    excelRow.getCell(3).value = row['Embalagem'] || '';
+    excelRow.getCell(4).value = getDataParaExcel(row['Vencimento']) || row['Vencimento'] || '';
+    excelRow.getCell(5).value = Number.isNaN(precoUsd) ? '' : precoUsd;
+    excelRow.getCell(6).value = Number.isNaN(precoUsd) ? '' : { formula: `E${rowNumber}*$E$4`, result: precoUsd * dolar };
+
+    excelRow.eachCell(cell => {
+      cell.border = thinBorder;
+      cell.alignment = { vertical: 'middle' };
+    });
+
+    if (index % 2 === 0) {
+      [1, 2, 3].forEach(col => {
+        excelRow.getCell(col).fill = lightGreenFill;
+      });
+    }
+
+    excelRow.getCell(4).numFmt = 'dd/mm/yyyy';
+    excelRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
+    excelRow.getCell(5).numFmt = '$ #,##0.00';
+    excelRow.getCell(6).numFmt = 'R$ #,##0.00';
+    excelRow.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
+    excelRow.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+  });
+
+  worksheet.views = [{ state: 'frozen', ySplit: 8 }];
+  worksheet.autoFilter = {
+    from: 'A8',
+    to: `F${Math.max(8, data.length + 8)}`
+  };
+
+  await worksheet.protect('', {
+    selectLockedCells: true,
+    selectUnlockedCells: true,
+    sort: true,
+    autoFilter: true
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const filename = sanitizarNomeArquivo(`Lista de Preços ${lista}.xlsx`) || 'Lista de Preços.xlsx';
+  baixarArquivo(new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  }), filename);
+}
+
+    function renderExportacaoRegiao() {
+      if (telaAtual !== 'exportacao') return;
+
+      document.getElementById('dadosPadraoCard').classList.remove('active');
+      document.getElementById('tabela').closest('.card').style.display = 'block';
+      destruirTabelaAtual();
+
+      const data = filtrarDadosExportacao();
+      const thead = $('<thead><tr></tr><tr></tr></thead>');
+
+      COLUNAS_EXPORTACAO.forEach((col, index) => {
+        thead.find('tr:first').append(`<th>${col}</th>`);
+
+        const valoresUnicos = [...new Set(data.map(item => {
+          if (col === 'Vencimento') {
+            return formatarDataBrasileira(item[col]);
+          }
+
+          return String(item[col] || '').trim();
+        }))]
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+        thead.find('tr:last').append(`<th>${criarFiltroMultiplo(col, valoresUnicos, index)}</th>`);
+      });
+
+      $('#tabela').append(thead);
+
+      tabela = $('#tabela').DataTable({
+        data: data,
+        columns: COLUNAS_EXPORTACAO.map(col => {
+          if (col === 'Desconto') {
+            return {
+              data: col,
+              title: col,
+              defaultContent: '',
+              render: function(value, type) {
+                const formattedValue = formatarDecimalBrasileiro(value);
+                if (type !== 'display') return formattedValue;
+                return `<input class="editable-export-discount" type="text" inputmode="decimal" value="${escapeHtml(formattedValue)}" />`;
+              }
+            };
+          }
+
+          return {
+            data: function(row) {
+              return row[col] !== undefined ? row[col] : '';
+            },
+            title: col,
+            defaultContent: ''
+          };
+        }),
+        orderCellsTop: true,
+        pageLength: 25,
+        scrollX: true,
+        language: {
+          url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/pt-BR.json'
+        }
+      });
+
+      inicializarFiltrosMultiplo(thead);
+
+      $('#tabela tbody').off('change', '.editable-export-discount').on('change', '.editable-export-discount', function() {
+        const formattedValue = formatarDecimalBrasileiro(this.value);
+        const row = tabela.row($(this).closest('tr')).data();
+        row['Desconto'] = formattedValue;
+        this.value = formattedValue;
+
+        const rowRecalculada = montarLinhaExportacao(recalcularLinha(row));
+        atualizarLinhaDadosOriginais(rowRecalculada);
+        atualizarItemCarrinho(rowRecalculada);
+        tabela.row($(this).closest('tr')).data(rowRecalculada).draw(false);
+      });
+
+      $('#tabela tbody').off('blur', '.editable-export-discount').on('blur', '.editable-export-discount', function() {
+        this.value = formatarDecimalBrasileiro(this.value);
+      });
+    }
+
+    function renderTabela(data) {
+      if (!data.length) return;
+
+      document.getElementById('dadosPadraoCard').classList.remove('active');
+      document.getElementById('tabela').closest('.card').style.display = 'block';
+
+      const colunas = [
+        'Cotação',
+        'Lista de Preços',
+        'Cód. do Produto',
+        'Nome do Produto',
+        'Embalagem',
+        'Preço de Lista',
+        'Vencimento',
+        'Preço em Dólar FOB',
+        'Preço em Reais FOB',
+        'Preço em Reais CIF',
+        'Vencimento Financeiro',
+        'Desconto',
+        'Entrega de',
+        'Entrega até',
+        'Centro de Faturamento',
+        'Local de Expedição'
+      ];
+
+      if (tabela) {
+        tabela.destroy();
+        $('#tabela').empty();
+      }
+
+      const thead = $('<thead><tr></tr><tr></tr></thead>');
+
+      colunas.forEach((col, index) => {
+        thead.find('tr:first').append(`<th>${col}</th>`);
+        
+        if (col === 'Cotação') {
+          thead.find('tr:last').append('<th></th>');
+        } else {
+          const valoresUnicosRaw = [...new Set(data.map(item => {
+            let val = item[col];
+            if (['Vencimento', 'Entrega de', 'Entrega até', 'Vencimento Financeiro'].includes(col)) {
+              return formatarDataBrasileira(val);
+            }
+            return String(val || '').trim();
+          }))];
+
+          const valoresUnicos = valoresUnicosRaw
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+          thead.find('tr:last').append(`<th>${criarFiltroMultiplo(col, valoresUnicos, index)}</th>`);
+        }
+      });
+
+      $('#tabela').append(thead);
+
+      tabela = $('#tabela').DataTable({
+        data: data,
+        columns: colunas.map(col => {
+          if (col === 'Cotação') {
+            return {
+              data: null,
+              title: col,
+              orderable: false,
+              searchable: false,
+              defaultContent: '',
+              render: function(value, type, row) {
+                if (type !== 'display') {
+                  return itemEstaNoCarrinho(row) ? '1' : '0';
+                }
+                const checked = itemEstaNoCarrinho(row) ? ' checked' : '';
+                return `<input class="select-cart-checkbox" type="checkbox" aria-label="Selecionar produto para cotação"${checked} />`;
+              }
+            };
+          }
+
+          if (col === 'Vencimento') {
+            return {
+              data: col,
+              title: col,
+              defaultContent: '',
+              render: function(value, type) {
+                const formattedValue = formatarDataBrasileira(value);
+                if (type !== 'display') return formattedValue;
+                return `<input class="editable-date" type="text" inputmode="numeric" value="${escapeHtml(formattedValue)}" />`;
+              }
+            };
+          }
+
+          if (col === 'Desconto') {
+            return {
+              data: col,
+              title: col,
+              defaultContent: '',
+              render: function(value, type) {
+                const formattedValue = formatarDecimalBrasileiro(value);
+                if (type !== 'display') return formattedValue;
+                return `<input class="editable-discount" type="text" inputmode="decimal" value="${escapeHtml(formattedValue)}" />`;
+              }
+            };
+          }
+
+          if (['Entrega de', 'Entrega até', 'Vencimento Financeiro'].includes(col)) {
+            return {
+              data: col,
+              title: col,
+              defaultContent: '',
+              render: function(value) {
+                return formatarDataBrasileira(value);
+              }
+            };
+          }
+
+          if (['Preço em Dólar FOB', 'Preço em Reais FOB', 'Preço em Reais CIF'].includes(col)) {
+            return {
+              data: col,
+              title: col,
+              defaultContent: '',
+              render: function(value) {
+                return value !== undefined ? value : '';
+              }
+            };
+          }
+
+          return {
+            data: function(row) {
+              return row[col] !== undefined ? row[col] : '';
+            },
+            title: col,
+            defaultContent: ''
+          };
+        }),
+        orderCellsTop: true,
+        pageLength: 25,
+        scrollX: true,
+        language: {
+          url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/pt-BR.json'
+        }
+      });
+
+      inicializarFiltrosMultiplo(thead);
+
+      $('#tabela tbody').off('change', '.editable-date').on('change', '.editable-date', function() {
+        const formattedValue = formatarDataBrasileira(this.value);
+        const row = tabela.row($(this).closest('tr')).data();
+        row['Vencimento'] = formattedValue;
+        this.value = formattedValue;
+        const rowRecalculada = recalcularLinha(row);
+        atualizarItemCarrinho(rowRecalculada);
+        tabela.row($(this).closest('tr')).data(rowRecalculada).draw(false);
+      });
+
+      $('#tabela tbody').off('change', '.editable-discount').on('change', '.editable-discount', function() {
+        const formattedValue = formatarDecimalBrasileiro(this.value);
+        const row = tabela.row($(this).closest('tr')).data();
+        row['Desconto'] = formattedValue;
+        this.value = formattedValue;
+        const rowRecalculada = recalcularLinha(row);
+        atualizarItemCarrinho(rowRecalculada);
+        tabela.row($(this).closest('tr')).data(rowRecalculada).draw(false);
+      });
+
+      $('#tabela tbody').off('change', '.select-cart-checkbox').on('change', '.select-cart-checkbox', function() {
+        const row = tabela.row($(this).closest('tr')).data();
+        if (this.checked) {
+          adicionarAoCarrinho(row);
+        } else {
+          removerDoCarrinhoPorLinha(row);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
