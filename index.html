@@ -1835,7 +1835,7 @@
           const lista = row['Lista de Preços'] || '';
           const centro = row['Centro de Faturamento'] || '';
           
-          const isQ1toQ4 = lista.includes('BRL_Q1_2026') || lista.includes('BRL_Q2_2026') || lista.includes('BRL_Q3_2026') || lista.includes('BRL_Q4_2026');
+          const isQ1toQ4 = lista.includes('BRL_Q1_2027') || lista.includes('BRL_Q2_2027') || lista.includes('BRL_Q3_2027') || lista.includes('BRL_Q4_2026');
           const isPngOrUba = centro.includes('PNG') || centro.includes('UBA');
           
           return !(isQ1toQ4 && isPngOrUba);
