@@ -842,6 +842,7 @@
             <select id="quotePriceColumn">
               <option value="Preço em Reais FOB">Preço em Reais FOB</option>
               <option value="Preço em Reais CIF">Preço em Reais CIF</option>
+              <option value="Preço em Dólar CIF">Preço em Dólar CIF</option>
             </select>
           </label>
           <button class="secondary-btn" type="button" id="downloadQuotePdf">Baixar PDF</button>
@@ -866,26 +867,29 @@
     const LOGIN_CPF_TESTE = '01759818925';
     const LOGIN_SENHA_TESTE = '191112';
     const COLUNAS_COTACAO = [
-      'Lista de Preços',
-      'Centro de Faturamento',
-      'Nome do Produto',
-      'Embalagem',
-      'Vencimento',
-      'Preço em Dólar FOB',
-      'Preço em Reais FOB',
-      'Preço em Reais CIF'
-    ];
-    const COLUNAS_MODAL_COTACAO = [
-      'Lista de Preços',
-      'Centro de Faturamento',
-      'Nome do Produto',
-      'Embalagem',
-      'Vencimento',
-      'Desconto',
-      'Preço em Dólar FOB',
-      'Preço em Reais FOB',
-      'Preço em Reais CIF'
-    ];
+  'Lista de Preços',
+  'Centro de Faturamento',
+  'Nome do Produto',
+  'Embalagem',
+  'Vencimento',
+  'Preço em Dólar FOB',
+  'Preço em Reais FOB',
+  'Preço em Reais CIF',
+  'Preço em Dólar CIF'
+];
+
+const COLUNAS_MODAL_COTACAO = [
+  'Lista de Preços',
+  'Centro de Faturamento',
+  'Nome do Produto',
+  'Embalagem',
+  'Vencimento',
+  'Desconto',
+  'Preço em Dólar FOB',
+  'Preço em Reais FOB',
+  'Preço em Reais CIF',
+  'Preço em Dólar CIF'
+];
     const CAMPOS_CALCULO_COTACAO = [
       'Cód. do Produto',
       'Preço de Lista',
@@ -1348,50 +1352,69 @@
     }
 
     function calcularPrecoDolarFob(row) {
-      const vencimento = parseDataBrasileira(row['Vencimento']);
-      const vencimentoFinanceiro = parseDataBrasileira(row['Vencimento Financeiro']);
-      const precoLista = parseNumeroBrasileiro(row['Preço de Lista']);
-      const desconto = parseNumeroBrasileiro(row['Desconto']);
-      const icms = getPercentualConfig('ICMS');
-      const correcao = getPercentualConfig('Correção');
-      const antecipacao = getPercentualConfig('Antecipação');
+  const vencimento = parseDataBrasileira(row['Vencimento']);
+  const vencimentoFinanceiro = parseDataBrasileira(row['Vencimento Financeiro']);
+  const precoLista = parseNumeroBrasileiro(row['Preço de Lista']);
+  const desconto = parseNumeroBrasileiro(row['Desconto']);
+  const icms = getPercentualConfig('ICMS');
+  const correcao = getPercentualConfig('Correção');
+  const antecipacao = getPercentualConfig('Antecipação');
 
-      if (!vencimento || !vencimentoFinanceiro || Number.isNaN(precoLista) || Number.isNaN(desconto)) {
-        return '';
-      }
+  if (!vencimento || !vencimentoFinanceiro || Number.isNaN(precoLista) || Number.isNaN(desconto)) {
+    return '';
+  }
 
-      const precoBase = (precoLista - desconto) * (1 + icms);
-      const dias = diferencaDias(vencimento, vencimentoFinanceiro);
-      let precoDolarFob = precoBase;
+  const precoBase = (precoLista - desconto) * (1 + icms);
+  const dias = diferencaDias(vencimento, vencimentoFinanceiro);
+  let precoDolarFob = precoBase;
 
-      if (dias > 0) {
-        precoDolarFob = precoBase * (1 + ((correcao / 30) * dias));
-      } else if (dias < 0) {
-        precoDolarFob = precoBase * (1 - ((antecipacao / 30) * Math.abs(dias)));
-      }
+  if (dias > 0) {
+    precoDolarFob = precoBase * (1 + ((correcao / 30) * dias));
+  } else if (dias < 0) {
+    precoDolarFob = precoBase * (1 - ((antecipacao / 30) * Math.abs(dias)));
+  }
 
-      return formatarDecimalBrasileiro(precoDolarFob);
-    }
+  return formatarDecimalBrasileiro(precoDolarFob);
+}
 
-    function recalcularLinha(row) {
-      const precoDolarFob = calcularPrecoDolarFob(row);
-      const precoDolarFobNumero = parseNumeroBrasileiro(precoDolarFob);
-      const dolar = getValorConfig('Dólar');
-      const frete = getValorConfig('Frete');
-      const precoReaisFob = Number.isNaN(precoDolarFobNumero)
-        ? NaN
-        : precoDolarFobNumero * dolar;
+function recalcularLinha(row) {
+  const precoDolarFob = calcularPrecoDolarFob(row);
+  const precoDolarFobNumero = parseNumeroBrasileiro(precoDolarFob);
+  const dolar = getValorConfig('Dólar');
+  const frete = getValorConfig('Frete');
 
-      row['Preço em Dólar FOB'] = precoDolarFob;
-      row['Preço em Reais FOB'] = Number.isNaN(precoReaisFob)
-        ? ''
-        : formatarDecimalBrasileiro(precoReaisFob);
-      row['Preço em Reais CIF'] = Number.isNaN(precoReaisFob)
-        ? ''
-        : formatarDecimalBrasileiro(precoReaisFob + frete);
+  const precoReaisFob = Number.isNaN(precoDolarFobNumero)
+    ? NaN
+    : precoDolarFobNumero * dolar;
 
-      return row;
-    }
+  const precoReaisCif = Number.isNaN(precoReaisFob)
+    ? NaN
+    : precoReaisFob + frete;
+
+  // Preço em Dólar CIF: Preço em Reais CIF / Dólar
+  const precoDolarCif = (Number.isNaN(precoReaisCif) || !dolar)
+    ? NaN
+    : precoReaisCif / dolar;
+
+  row['Preço em Dólar FOB'] = precoDolarFob;
+
+  // Preço em Reais FOB: Preço Dólar FOB * Dólar
+  row['Preço em Reais FOB'] = Number.isNaN(precoReaisFob)
+    ? ''
+    : formatarDecimalBrasileiro(precoReaisFob);
+
+  // Preço em Reais CIF: Preço em Reais FOB + Frete
+  row['Preço em Reais CIF'] = Number.isNaN(precoReaisCif)
+    ? ''
+    : formatarDecimalBrasileiro(precoReaisCif);
+
+  // Preço em Dólar CIF: Preço em Reais CIF / Dólar
+  row['Preço em Dólar CIF'] = Number.isNaN(precoDolarCif)
+    ? ''
+    : formatarDecimalBrasileiro(precoDolarCif);
+
+  return row;
+}
 
     function recalcularTabelaAtual() {
       if (!tabela) return;
@@ -1660,7 +1683,7 @@
       doc.text('Vendedor: Adriano Girardi', 12, 43);
       doc.text(`Data: ${dataCotacao}`, 12, 50);
       doc.text(`Dólar praticado: ${dolarCotacaoTexto}`, 12, 57);
-      doc.text(`Frete: ${colunaPrecoReais}`, 12, 64);
+      doc.text(`Opção de Preço: ${colunaPrecoReais}`, 12, 64);
 
       doc.autoTable({
         head: [colunasPdf],
